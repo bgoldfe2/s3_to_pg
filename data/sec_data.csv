@@ -1,0 +1,21 @@
+kiosk,tmstamp,emp_id,fname,middle,lname,emp_occupancy
+Bldg4_ENTRY,2020-08-24 08:00:00,pF125102907,Dawn,Jennifer,Morales,IN
+Bldg4_ENTRY,2020-08-24 08:00:02,ZG270182734,Tommy,Jeffrey,Clark,IN
+Bldg4_ENTRY,2020-08-24 08:00:13,dr973435661,George,Martin,Montgomery,IN
+Bldg4_ENTRY,2020-08-24 08:00:21,Ye146756147,Cheyenne,Dana,Davis,IN
+Bldg4_ENTRY,2020-08-24 08:00:31,Cr003418906,Zachary,Mark,Garcia,IN
+Bldg4_ENTRY,2020-08-24 08:00:35,PD841198769,Cheryl,Tammy,Jackson,IN
+Bldg4_ENTRY,2020-08-24 08:00:43,Rp464382976,Robert,Steven,Rios,IN
+Bldg4_ENTRY,2020-08-24 08:00:53,bW558390464,Matthew,Anthony,Hodges,IN
+Bldg4_ENTRY,2020-08-24 08:01:01,PG819765032,Claudia,Christine,Wilson,IN
+Bldg4_ENTRY,2020-08-24 08:01:04,CI143412672,Angela,Ashley,Parsons,IN
+Bldg4_EXIT,2020-08-24 15:16:43,Rp464382976,Robert,Steven,Rios,OUT
+Bldg4_EXIT,2020-08-24 15:20:01,PG819765032,Claudia,Christine,Wilson,OUT
+Bldg4_EXIT,2020-08-24 15:20:13,dr973435661,George,Martin,Montgomery,OUT
+Bldg4_EXIT,2020-08-24 15:28:04,CI143412672,Angela,Ashley,Parsons,OUT
+Bldg4_EXIT,2020-08-24 15:41:31,Cr003418906,Zachary,Mark,Garcia,OUT
+Bldg4_EXIT,2020-08-24 16:09:00,pF125102907,Dawn,Jennifer,Morales,OUT
+Bldg4_EXIT,2020-08-24 16:10:02,ZG270182734,Tommy,Jeffrey,Clark,OUT
+Bldg4_EXIT,2020-08-24 16:23:53,bW558390464,Matthew,Anthony,Hodges,OUT
+Bldg4_EXIT,2020-08-24 16:28:35,PD841198769,Cheryl,Tammy,Jackson,OUT
+Bldg4_EXIT,2020-08-24 16:52:21,Ye146756147,Cheyenne,Dana,Davis,OUT
