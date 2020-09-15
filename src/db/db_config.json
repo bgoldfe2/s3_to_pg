@@ -1,0 +1,8 @@
+{
+    "db_username":"postgres",
+    "db_password":"dashboard",
+    "db_name":"lambda-test-db",
+    "db_endpoint":"lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
+    "schema":"lambda-test",
+    "table":"badgedata"
+}
