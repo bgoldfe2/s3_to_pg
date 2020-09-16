@@ -102,15 +102,11 @@ def lambda_handler(event, context):
             resp['Proc_Items'].append(d)
         else:
             resp['Err_Items'].append(d)
-        
-            
 
     # Log the upload event metadata
     resp = log_up_evt(resp,len(event.get('Records')))
-    
 
     return resp
-
 
 if __name__ == '__main__':
     lambda_handler(None, None)
