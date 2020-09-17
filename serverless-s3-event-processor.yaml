@@ -33,7 +33,7 @@ Resources:
       Description: 'AWS Lambda to process new S3 Objects'
       FunctionName: !Sub 'EventProcessor-${FunctionNameSuffix}'
       Handler: serverless-s3-event-processor.lambda_handler
-      CodeUri: ./src/serverless-s3-event-processor.py
+      CodeUri: ./src/python/serverless-s3-event-processor.py
       Events:
         EventTrigger1:
           Type: S3

@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Lambda to process new S3 Objects
+Parameters:
+  debugMODE:
+    Description: Do you want to enable logging.
+    Default: 'True'
+    Type: String
+    AllowedValues:
+    - 'True'
+    - 'False'
+    ConstraintDescription: Must be boolean.
+  FunctionNameSuffix:
+    Description: Suffix to append to the Lambda functions.
+    Type: String
+    Default: DensityDash
+Globals:
+  Function:
+    Runtime: python3.8
+    Timeout: 10
+    MemorySize: 128
+    Environment:
+      Variables:
+        DEBUG_MODE:
+          Ref: debugMODE
+Resources:
+  EventProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: AWS Lambda to process new S3 Objects
+      FunctionName:
+        Fn::Sub: EventProcessor-${FunctionNameSuffix}
+      Handler: serverless-s3-event-processor.lambda_handler
+      CodeUri: s3://bruceg-testbucket-for-s3/c68cee4bdbb514c069f3d679696e2cc1
+      Events:
+        EventTrigger1:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: EventBucket
+            Events: s3:ObjectCreated:*
+      Policies:
+      - AWSLambdaExecute
+  EventBucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  S3EventBucket:
+    Description: S3 Bucket that triggers the Lambda
+    Value:
+      Ref: EventBucket
+  EventProcessorFunction:
+    Description: ARN for the EventProcessor Lambda Function
+    Value:
+      Fn::GetAtt:
+      - EventProcessor
+      - Arn
