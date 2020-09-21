@@ -6,32 +6,59 @@ import psycopg2
 import logging
 import sys
 
-t_host = "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com"
-t_port = 5432
-t_dbname = "postgres"
-t_user = "postgres"
-t_pw = "dashboard"
+import pandas as pd
+from s3fs.core import S3FileSystem
+# Since we want to benchmark the efficiency of each insert strategy
+from timeit import default_timer as timer
 
-#db_conn = psycopg2.connect(host=t_host, port=t_port, dbname=t_dbname, user=t_user, password=t_pw)
-myConnection = psycopg2.connect( host=t_host, user=t_user, password=t_pw, dbname=t_dbname )
-cursor = myConnection.cursor()
-print(myConnection.get_dsn_parameters(),"\n")
+params_dic = {
+    "host" : "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
+    "database" : "postgres",
+    "user" : "postgres",
+    "password" : "dashboard"
+}
 
-cursor.execute("SELECT NOW();")
-print(cursor.fetchall())
+s_bucket = "serverless-s3-event-processor-eventbucket-kvjsay3gp8ie"
+s_key = "sec_data.csv"
 
-print("Hooray, got this far!!!")
-    # Trap errors for copying the array to our database
-#try:
-#    db_cursor.copy_from(f_contents, "tbl_users", columns=('t_name_user', 't_email'), sep=",")
-#except psycopg2.Error as e:
-#    t_message = "Database error: "
-#    logger.info(t_message)
-#    raise e
+dat = { 'kiosk':'K1', 'tmstamp':'2020-08-24 08:00:02','emp_id':'emp111','fname':'George',\
+    'middle':'Henry','lname':'Stevenson','emp_occupancy':'IN'}
 
-# It got this far: Success!
+# Try reading csv from S3 file system
+try:
+    s3 = S3FileSystem(anon=False)
+    
+    df = pd.read_csv(s3.open('{}/{}'.format(s_bucket, s_key),
+                            mode='rb')
+                    )
+    print(df)
+except Error as e:
+    print(e)
+
+#asdf
+# Trap errors for copying the array to our database
+conn = None
+try:
+    print('Connecting to the PostgreSQL database...')
+    conn = psycopg2.connect( **params_dic )
+    cursor = conn.cursor()
+
+    #print(conn.get_dsn_parameters(),"\n")
+    #cursor.execute("SELECT NOW();")
+    #print(cursor.fetchall())
+    cursor.execute('insert into "badgedata" ("kiosk","tmstamp","emp_id","fname","middle",\
+        "lname","emp_occupancy") values (%s, %s,%s, %s,%s, %s,%s)',(dat['kiosk'],dat['tmstamp'],\
+            dat['emp_id'],dat['fname'],dat['middle'],dat['lname'],dat['emp_occupancy']))
+    conn.commit()
+
+    cursor.close()
+except psycopg2.Error as e:
+    t_message = "Database error: "
+    print(t_message)
+    raise e
+
+print("Connection successful")
 
 # Clean up by closing the database cursor and connection
-cursor.close()
-myConnection.close()
+conn.close()
     
