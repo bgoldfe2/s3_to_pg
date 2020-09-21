@@ -27,19 +27,20 @@ s3 = boto3.client('s3')
 
 def process_file(d):
     if d['key'] == pg_conf_name:
-        return process_conf_file(d)
-    # Read in the db config json file
-    try:
-        obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
-        data_in = obj['Body'].read().decode('utf-8','ignore')
-        logger.info(data_in)
-        
-        # Save data off to database
-        # TODO
-        
-    except Exception as e:
-        logger.info(e)
-        return False
+        process_conf_file(d)
+    else:
+        # Read in the db config json file
+        try:
+            obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
+            data_in = obj['Body'].read().decode('utf-8','ignore')
+            logger.info(data_in)
+            
+            # Save data off to database
+            # TODO
+            
+        except Exception as e:
+            logger.info(e)
+            return False
     
     return True
 
@@ -88,6 +89,8 @@ def lambda_handler(event, context):
         return resp
     
     # Capture the upload event metadata and log file content
+    # Note: observed behavior in the cloudwatch logs are that each file uploaded
+    #       creates its own event
     for rec in event.get('Records'):
         # Capture the metadata of the upload event and file(s)
         d = {}
@@ -95,7 +98,8 @@ def lambda_handler(event, context):
         d['object_owner']   = rec['userIdentity']['principalId']
         d['bucket_name']    = rec['s3']['bucket']['name']
         d['key']            = rec['s3']['object']['key']
-        
+        msg = "Recieved in FILE "+d['key']+" num files uploaded "+str(len(event.get('Records')))
+        logger.info(msg)
         # If file can't be processed it goes into error list
         # Read in the database configuration in file (could be encrypted in s3)
         if process_file(d):
