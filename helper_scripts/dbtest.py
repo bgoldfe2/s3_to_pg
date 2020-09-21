@@ -32,7 +32,7 @@ try:
                             mode='rb')
                     )
     print(df)
-except Error as e:
+except Exception as e:
     print(e)
 
 #asdf
