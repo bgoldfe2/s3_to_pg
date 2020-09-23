@@ -36,13 +36,16 @@ def process_file(d):
             logger.info(data_in)
             
             # Save data off to database
-            # TODO
+            load_data(data_in)
             
         except Exception as e:
             logger.info(e)
             return False
     
     return True
+    
+def load_data(dat):
+    
 
 def process_conf_file(d):
 # Read in the db config json file

@@ -1,9 +1,7 @@
 {
-    "db_username":"postgres",
-    "db_password":"dashboard",
-    "db_name":"postgres",
-    "db_endpoint":"lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
-    "port":"5432",
-    "schema":"public",
-    "table":"badgedata"
+    "host" : "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
+    "database" : "postgres",
+    "user" : "postgres",
+    "password" : "dashboard",
+    "port" : "5432"
 }

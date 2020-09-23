@@ -11,7 +11,8 @@ params_dic = {
     "host" : "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
     "database" : "postgres",
     "user" : "postgres",
-    "password" : "dashboard"
+    "password" : "dashboard",
+    "port" : "5432"
 }
 
 s_bucket = "serverless-s3-event-processor-eventbucket-kvjsay3gp8ie"
