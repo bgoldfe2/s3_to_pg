@@ -131,7 +131,7 @@ def load_data(s_bucket,s_key):
         raise e
     conn = connect(params_dic)
     copy_from_stringio(conn, df, 'badgedata')
-    print("copied file")
+    print("copied file into database successfully")
     print(execute_query(conn, "select count(*) from badgedata;"))
     #print(execute_query(conn, "delete from badgedata where true;"))
     
