@@ -11,4 +11,6 @@ set -ex
 # In package folder make a subdirectory called python
 # Pip install all of your dependencies.
 # Zip for CLI deployment to AWS 
-mkdir -p pg-layer/python && pip install psycopg2-binary -t pg-layer/python && cd pg-layer && zip -r aws-pg-layer.zip python
+#mkdir -p pg-layer/python && pip install psycopg2-binary -t pg-layer/python && cd pg-layer && zip -r aws-pg-layer.zip python
+mkdir -p helper_scripts/pg_layer/python && pip install -r requirements.txt -t helper_scripts/pg_layer/python \
+ && cd helper_scripts/pg_layer && zip -r aws-pg-layer.zip python
