@@ -6,13 +6,18 @@
 .. contactauthor:: bruce.goldfeder@asetpartners.com zarro_boogs
 """
 
-import os
+import os,sys
+import numpy as np
+import pandas as pd
 import json
 import boto3
 import botocore
 import psycopg2
 import logging
-import sys
+from s3fs.core import S3FileSystem
+import psycopg2
+import psycopg2.extras as extras
+from io import StringIO
 
 # Initialize Logger
 logger = logging.getLogger()
@@ -25,27 +30,112 @@ db_config = {}
 
 s3 = boto3.client('s3')
 
+params_dic = {
+    "host" : "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
+    "database" : "postgres",
+    "user" : "postgres",
+    "password" : "dashboard",
+    "port" : "5432"
+}
+
 def process_file(d):
     if d['key'] == pg_conf_name:
         process_conf_file(d)
     else:
+        load_data(d['bucket_name'],d['key'])
         # Read in the db config json file
-        try:
-            obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
-            data_in = obj['Body'].read().decode('utf-8','ignore')
-            logger.info(data_in)
+        #try:
+        #    obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
+        #    data_in = obj['Body'].read().decode('utf-8','ignore')
+        #    logger.info(data_in)
             
             # Save data off to database
-            load_data(data_in)
+        #    load_data(data_in)
             
-        except Exception as e:
-            logger.info(e)
-            return False
+        #except Exception as e:
+        #    logger.info(e)
+        #    return False
     
     return True
     
-def load_data(dat):
+def connect(params_dic):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    try:
+        # connect to the PostgreSQL server
+        logging.info('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params_dic)
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.info("Error connecting to database, error should follow")
+        logging.error(error)
+        raise error 
+    logging.info("Connection successful")
+    return conn
+
+def execute_query(conn, query):
+    """ Execute a single query """
     
+    ret = 0 # Return value
+    cursor = conn.cursor()
+    try:
+        cursor.execute(query)
+        conn.commit()
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.error("Error: %s" % error)
+        conn.rollback()
+        cursor.close()
+        raise error
+
+    # If this was a select query, return the result
+    if 'select' in query.lower():
+        ret = cursor.fetchall()
+    cursor.close()
+    return ret
+
+def copy_from_stringio(conn, df, table):
+    """
+    Here we are going save the dataframe in memory 
+    and use copy_from() to copy it to the table
+    """
+    # save dataframe to an in memory buffer
+    buffer = StringIO()
+    df.to_csv(buffer, index=False, header=False)
+    buffer.seek(0)
+    
+    cursor = conn.cursor()
+    try:
+        cursor.copy_from(buffer, table, sep=",")
+        conn.commit()
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.error("Error: %s" % error)
+        conn.rollback()
+        cursor.close()
+        raise error
+    logging.info("copy_from_stringio() done")
+    cursor.close()
+
+
+def load_data(s_bucket,s_key):
+    df = None 
+
+    # Try reading csv from S3 file system
+    try:
+        s3 = S3FileSystem(anon=False)
+        
+        df = pd.read_csv(s3.open('{}/{}'.format(s_bucket, s_key),
+                                mode='r')
+                        )
+        print(df)
+    except Exception as e:
+        logging.info(e)
+        raise e
+    conn = connect(params_dic)
+    copy_from_stringio(conn, df, 'badgedata')
+    print("copied file")
+    print(execute_query(conn, "select count(*) from badgedata;"))
+    #print(execute_query(conn, "delete from badgedata where true;"))
+    
+    return df
 
 def process_conf_file(d):
 # Read in the db config json file
