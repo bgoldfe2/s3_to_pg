@@ -3,7 +3,7 @@
 .. module: Serverless S3 Event Processor
     :platform: AWS    
 .. moduleauthor:: Bruce Goldfeder
-.. contactauthor:: bruce.goldfeder@asetpartners.com zarro_boogs
+.. contactauthor:: bruce.goldfeder@asetpartners.com
 """
 
 import os,sys
@@ -25,37 +25,35 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 # Database configuration filename in S3 bucket
-pg_conf_name = "db_config.json"
-db_config = {}
+PG_CONF_NAME = "db_config.json"
 
 s3 = boto3.client('s3')
 
-params_dic = {
-    "host" : "lambda-test.cyb3keo6utm7.us-east-1.rds.amazonaws.com",
-    "database" : "postgres",
-    "user" : "postgres",
-    "password" : "dashboard",
-    "port" : "5432"
-}
-
 def process_file(d):
-    if d['key'] == pg_conf_name:
-        process_conf_file(d)
-    else:
-        load_data(d['bucket_name'],d['key'])
-        # Read in the db config json file
-        #try:
-        #    obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
-        #    data_in = obj['Body'].read().decode('utf-8','ignore')
-        #    logger.info(data_in)
-            
-            # Save data off to database
-        #    load_data(data_in)
-            
-        #except Exception as e:
-        #    logger.info(e)
-        #    return False
+    """ File process ingest driver function """
     
+    params_dic = None
+    
+    if d['key']==PG_CONF_NAME:
+        logging.info("Database Configuration file uploaded to S3")
+        
+    else:    
+        # Read in the db config json from S3 file
+        try:
+            obj = s3.get_object(Bucket=d['bucket_name'], Key=PG_CONF_NAME)
+            data_in = obj['Body'].read().decode('utf-8','ignore')
+            logger.info(data_in)
+            params_dic = json.loads(data_in)
+            logger.info(params_dic)
+            
+        except Exception as e:
+            logger.info("Error reading in db_config file from S3")
+            logger.info(e)
+            return False
+    
+        # Log the db_config or load the data into the database
+        load_data(d['bucket_name'],d['key'],params_dic)
+        
     return True
     
 def connect(params_dic):
@@ -68,7 +66,7 @@ def connect(params_dic):
     except (Exception, psycopg2.DatabaseError) as error:
         logging.info("Error connecting to database, error should follow")
         logging.error(error)
-        raise error 
+        raise
     logging.info("Connection successful")
     return conn
 
@@ -115,7 +113,7 @@ def copy_from_stringio(conn, df, table):
     cursor.close()
 
 
-def load_data(s_bucket,s_key):
+def load_data(s_bucket,s_key,params_dic):
     df = None 
 
     # Try reading csv from S3 file system
@@ -131,26 +129,11 @@ def load_data(s_bucket,s_key):
         raise e
     conn = connect(params_dic)
     copy_from_stringio(conn, df, 'badgedata')
-    print("copied file into database successfully")
-    print(execute_query(conn, "select count(*) from badgedata;"))
+    logger.info("copied file into database successfully")
+    logger.info(execute_query(conn, "select count(*) from badgedata;"))
     #print(execute_query(conn, "delete from badgedata where true;"))
-    
+    conn.close()
     return df
-
-def process_conf_file(d):
-# Read in the db config json file
-    try:
-        obj = s3.get_object(Bucket=d['bucket_name'], Key=d['key'])
-        json_conf = obj['Body'].read().decode('utf-8','ignore')
-        logger.info(json_conf)
-        db_dict = json.loads(json_conf)
-        log_upload_content(db_dict)
-    
-    except Exception as e:
-        logger.info(e)
-        return False
-    
-    return True
 
 def log_upload_content(up_data):
     # Log output from db_config.json file in S3 bucket
